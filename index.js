@@ -1,7 +1,6 @@
 import _ from 'lodash'
 
 export default {
-
   serialize (object) {
     let data = {
       type: object.type,
