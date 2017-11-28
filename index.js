@@ -1,7 +1,11 @@
 import _ from 'lodash'
 
 export default {
-  serialize (object) {
+  serialize (dataObject, other = {}) {
+    return Object.assign({}, { data: this.serializeData(dataObject) }, other)
+  },
+
+  serializeData (object) {
     let data = {
       type: object.type,
       attributes: {},
