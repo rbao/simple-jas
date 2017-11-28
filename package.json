@@ -1,0 +1,14 @@
+{
+  "name": "simple-jas",
+  "version": "0.1.0",
+  "description": "A simple, smart, minimum configuration JSONAPI serializer.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Roy Bao <roy@roybao.com>",
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^4.17.4"
+  }
+}
