@@ -78,7 +78,11 @@ export default {
     return data
   },
 
-  deserialize (data, included = []) {
+  deserialize (payload) {
+    return this.deserializeData(payload.data, payload.included || [])
+  },
+
+  deserializeData (data, included = []) {
     let db = {}
     if (!_.isEmpty(included)) {
       // TODO: Improve this double call to add in the relationship
