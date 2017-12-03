@@ -1,12 +1,17 @@
 {
   "name": "simple-jas",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "A simple, smart, minimum configuration JSONAPI serializer.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rbao/simple-jas.git"
+  },
   "author": "Roy Bao <roy@roybao.com>",
+  "homepage": "https://github.com/rbao/simple-jas",
   "license": "MIT",
   "dependencies": {
     "lodash": "^4.17.4"
