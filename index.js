@@ -83,7 +83,12 @@ export default {
   },
 
   deserialize (payload) {
-    return this.deserializeData(payload.data, payload.included || [])
+    let deserializedData = this.deserializeData(payload.data, payload.included || [])
+    if (!payload.meta) {
+      return { data: deserializedData }
+    }
+
+    return { data: deserializedData, meta: payload.meta }
   },
 
   deserializeData (data, included = []) {
