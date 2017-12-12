@@ -92,18 +92,11 @@ export default {
   },
 
   deserializeData (data, included = []) {
-    let db = {}
-    if (!_.isEmpty(included)) {
-      // TODO: Improve this double call to add in the relationship
-      db = this._deserializeIncluded(included)
-      db = this._deserializeIncluded(included, db)
-    }
-
     if (_.isArray(data)) {
-      return this._deserializeArray(data, db)
+      return this._deserializeArrayData(data, included)
     }
 
-    return this._deserializeResourceObject(data, db)
+    return this._deserializeResourceData(data, included)
   },
 
   deserializeErrors (errors) {
@@ -120,30 +113,21 @@ export default {
     return errorObjects
   },
 
-  _deserializeIncluded (included, db = {}) {
-    _.forEach(included, resourceObject => {
-      let object = this._deserializeResourceObject(resourceObject, db)
-      db[object.type] = db[object.type] || {}
-      db[object.type][object.id] = object
-    })
-
-    return db
-  },
-
-  _deserializeArray (data, db = {}) {
+  _deserializeArrayData (data, included = {}) {
     let objectArray = []
     _.forEach(data, resourceObject => {
-      let object = this._deserializeResourceObject(resourceObject, db)
+      let object = this._deserializeResourceData(resourceObject, included)
       objectArray.push(object)
     })
 
     return objectArray
   },
 
-  _deserializeResourceObject (data, db = {}) {
+  _deserializeResourceData (data, included = {}, deserializationTree = []) {
     let object = {}
     object.id = data.id
     object.type = data.type
+    let newTree = _.concat(deserializationTree, { type: data.type, id: object.id })
 
     if (data.attributes) {
       _.forEach(data.attributes, (value, name) => {
@@ -157,17 +141,26 @@ export default {
           object[name] = []
 
           _.forEach(value.data, rio => {
-            let relationshipObject = this._find(db, rio.type, rio.id)
-            if (relationshipObject) {
+            let relationshipData = _.find(included, { type: rio.type, id: rio.id })
+            if (relationshipData) {
+              let relationshipObject = this._deserializeResourceData(relationshipData, included, newTree)
               object[name].push(relationshipObject)
             }
           })
         }
 
         if (_.isPlainObject(value.data)) {
-          let rio = value.data
-          let relationshipObject = this._find(db, rio.type, rio.id)
-          object[name] = relationshipObject || value.data
+          if (_.find(deserializationTree, { type: value.data.type, id: value.data.id })) {
+            object[name] = value.data
+          } else {
+            let rio = value.data
+            let relationshipData = _.find(included, { type: rio.type, id: rio.id })
+            if (relationshipData) {
+              object[name] = this._deserializeResourceData(relationshipData, included, newTree)
+            } else {
+              object[name] = rio
+            }
+          }
         }
 
         if (value.data === null) {
@@ -177,13 +170,5 @@ export default {
     }
 
     return object
-  },
-
-  _find (db, type, id) {
-    if (db[type]) {
-      return db[type][id]
-    }
-
-    return undefined
   }
 }
