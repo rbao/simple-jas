@@ -1,5 +1,3 @@
-import _ from 'lodash'
-
 export default {
   serialize (dataObject, other = {}) {
     return Object.assign({}, { data: this.serializeData(dataObject) }, other)
@@ -16,27 +14,29 @@ export default {
       data.id = object.id
     }
 
-    _.forEach(object, (value, key) => {
+    Object.keys(object).forEach(key => {
+      let value = object[key]
+
       // Ignore type attribute
       if (key === 'type') { return }
 
       // Match relationship base on key
       if (key.endsWith('Id')) {
-        let relationshipKey = _.trimEnd(key, 'Id')
-        let type = _.snakeCase(relationshipKey)
+        let relationshipKey = key.slice(0, -2)
+        let type = relationshipKey
         data.relationships[relationshipKey] = { data: { id: value, type: type } }
         return
       }
 
       // Match relationship base on key & value
-      if (key.endsWith('Ids') && _.isArray(value)) {
-        let relationshipKey = _.trimEnd(key, 'Ids')
-        let type = _.snakeCase(relationshipKey)
+      if (key.endsWith('Ids') && Array.isArray(value)) {
+        let relationshipKey = key.slice(0, -3)
+        let type = relationshipKey
         let rioArray = []
 
-        _.forEach(value, item => {
+        value.forEach(item => {
           // If item is an object we assume there is an id attribute
-          if (_.isPlainObject(item)) {
+          if (this._isObject(item)) {
             let resourceIdentifierObject = { id: item.id, type: item.type }
             resourceIdentifierObject.type = resourceIdentifierObject.type || type
             rioArray.push(resourceIdentifierObject)
@@ -51,11 +51,11 @@ export default {
       }
 
       // Match relationship base on value
-      if (_.isArray(value) && _.isPlainObject(value[0])) {
-        let type = _.snakeCase(key)
+      if (Array.isArray(value) && this._isObject(value[0])) {
+        let type = key
         let rioArray = []
 
-        _.forEach(value, item => {
+        value.forEach(item => {
           let resourceIdentifierObject = { id: item.id, type: item.type }
           resourceIdentifierObject.type = resourceIdentifierObject.type || type
           rioArray.push(resourceIdentifierObject)
@@ -66,8 +66,8 @@ export default {
       }
 
       // Match relationship base on value
-      if (_.isPlainObject(value) && value.id) {
-        let type = _.snakeCase(key)
+      if (this._isObject(value) && value.id) {
+        let type = key
         let rio = { id: value.id, type: value.type }
 
         rio.type = rio.type || type
@@ -92,7 +92,7 @@ export default {
   },
 
   deserializeData (data, included = []) {
-    if (_.isArray(data)) {
+    if (Array.isArray(data)) {
       return this._deserializeArrayData(data, included)
     }
 
@@ -102,8 +102,8 @@ export default {
   deserializeErrors (errors) {
     let errorObjects = { }
 
-    _.forEach(errors, item => {
-      let pointerArray = _.split(item.source.pointer, '/')
+    errors.forEach(item => {
+      let pointerArray = item.source.pointer.split('/')
       let index = 3
       if (pointerArray.length === 3) { index = 2 }
       errorObjects[pointerArray[index]] = errorObjects[pointerArray[index]] || []
@@ -115,7 +115,7 @@ export default {
 
   _deserializeArrayData (data, included = {}) {
     let objectArray = []
-    _.forEach(data, resourceObject => {
+    data.forEach(resourceObject => {
       let object = this._deserializeResourceData(resourceObject, included)
       objectArray.push(object)
     })
@@ -127,21 +127,23 @@ export default {
     let object = {}
     object.id = data.id
     object.type = data.type
-    let newTree = _.concat(deserializationTree, { type: data.type, id: object.id })
+    let newTree = deserializationTree.concat([{ type: data.type, id: object.id }])
 
     if (data.attributes) {
-      _.forEach(data.attributes, (value, name) => {
-        object[name] = value
+      Object.keys(data.attributes).forEach(name => {
+        object[name] = data.attributes[name]
       })
     }
 
     if (data.relationships) {
-      _.forEach(data.relationships, (value, name) => {
-        if (_.isArray(value.data)) {
+      Object.keys(data.relationships).forEach(name => {
+        let value = data.relationships[name]
+
+        if (Array.isArray(value.data)) {
           object[name] = []
 
-          _.forEach(value.data, rio => {
-            let relationshipData = _.find(included, { type: rio.type, id: rio.id })
+          value.data.forEach(rio => {
+            let relationshipData = this._find(included, { type: rio.type, id: rio.id })
             if (relationshipData) {
               let relationshipObject = this._deserializeResourceData(relationshipData, included, newTree)
               object[name].push(relationshipObject)
@@ -149,12 +151,12 @@ export default {
           })
         }
 
-        if (_.isPlainObject(value.data)) {
-          if (_.find(deserializationTree, { type: value.data.type, id: value.data.id })) {
+        if (this._isObject(value.data)) {
+          if (this._find(deserializationTree, { type: value.data.type, id: value.data.id })) {
             object[name] = value.data
           } else {
             let rio = value.data
-            let relationshipData = _.find(included, { type: rio.type, id: rio.id })
+            let relationshipData = this._find(included, { type: rio.type, id: rio.id })
             if (relationshipData) {
               object[name] = this._deserializeResourceData(relationshipData, included, newTree)
             } else {
@@ -170,5 +172,17 @@ export default {
     }
 
     return object
+  },
+
+  _find (collection, target) {
+    for (var i = 0; i < collection.length; i++) {
+      if (collection[i].id === target.id && collection[i].type === target.type) {
+        return collection[i]
+      }
+    }
+  },
+
+  _isObject (target) {
+    return target && !Array.isArray(target) && typeof target === 'object'
   }
 }
