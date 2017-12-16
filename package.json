@@ -2,7 +2,7 @@
   "name": "simple-jas",
   "version": "0.4.7",
   "description": "A simple, smart, minimum configuration JSONAPI serializer.",
-  "main": "src/index.js",
+  "main": "lib/simple-jas.js",
   "scripts": {
     "build": "webpack --env dev && webpack --env build",
     "dev": "webpack --progress --colors --watch --env dev",
