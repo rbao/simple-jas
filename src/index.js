@@ -21,7 +21,7 @@ export default {
       if (key === 'type') { return }
 
       // Match relationship base on key
-      if (key.endsWith('Id')) {
+      if (_endsWith(key, 'Id')) {
         let relationshipKey = key.slice(0, -2)
         let type = relationshipKey
         data.relationships[relationshipKey] = { data: { id: value, type: type } }
@@ -29,7 +29,7 @@ export default {
       }
 
       // Match relationship base on key & value
-      if (key.endsWith('Ids') && Array.isArray(value)) {
+      if (_endsWith(key, 'Ids') && Array.isArray(value)) {
         let relationshipKey = key.slice(0, -3)
         let type = relationshipKey
         let rioArray = []
@@ -184,5 +184,13 @@ export default {
 
   _isObject (target) {
     return target && !Array.isArray(target) && typeof target === 'object'
+  },
+
+  _endsWith(str, search) {
+    if (!String.prototype.endsWith) {
+      return str.substring(str.length - search.length, str.length) === search;
+    }
+
+    return str.endsWith(search)
   }
 }
