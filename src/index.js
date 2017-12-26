@@ -21,7 +21,7 @@ export default {
       if (key === 'type') { return }
 
       // Match relationship base on key
-      if (_endsWith(key, 'Id')) {
+      if (this._endsWith(key, 'Id')) {
         let relationshipKey = key.slice(0, -2)
         let type = relationshipKey
         data.relationships[relationshipKey] = { data: { id: value, type: type } }
@@ -29,7 +29,7 @@ export default {
       }
 
       // Match relationship base on key & value
-      if (_endsWith(key, 'Ids') && Array.isArray(value)) {
+      if (this._endsWith(key, 'Ids') && Array.isArray(value)) {
         let relationshipKey = key.slice(0, -3)
         let type = relationshipKey
         let rioArray = []
