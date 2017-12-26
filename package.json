@@ -1,6 +1,6 @@
 {
   "name": "simple-jas",
-  "version": "0.4.12",
+  "version": "0.4.13",
   "description": "A simple, smart, minimum configuration JSONAPI serializer.",
   "main": "dist/simple-jas.js",
   "scripts": {
