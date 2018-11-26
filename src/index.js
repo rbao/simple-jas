@@ -107,7 +107,7 @@ export default {
       let index = 3
       if (pointerArray.length === 3) { index = 2 }
       errorObjects[pointerArray[index]] = errorObjects[pointerArray[index]] || []
-      errorObjects[pointerArray[index]].push({ code: item.code, title: item.title })
+      errorObjects[pointerArray[index]].push(item)
     })
 
     return errorObjects
